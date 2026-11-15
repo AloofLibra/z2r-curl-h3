@@ -108,9 +108,11 @@ dl "https://github.com/curl/curl/releases/download/curl-${CURL_TAG}/$CUR.tar.xz"
 if [ ! -f "stage/bin/curl" ]; then
     echo "== curl $V_CURL"
     # LIBS: libatomic только там, где нет нативных 64-битных атомиков.
-    # LDFLAGS=-static: ПОЛНАЯ статика (musl.cc-тулчейны дают musl-динамический
-    # бинарник — на Entware/uClibc нет ld-musl => "not found"; прод-курл
-    # кинетика тоже полностью статический).
+    # AM_LDFLAGS=-all-static: ПОЛНАЯ статика бинарника (libtool съедает
+    # LDFLAGS=-static и даже -all-static в LDFLAGS: переменная линка
+    # бинарника — curl_LDFLAGS = $(AM_LDFLAGS)...). musl.cc-тулчейны иначе
+    # дают musl-динамический бинарник — на Entware/uClibc нет ld-musl
+    # => "not found" (проверено на MT7621; прод-курл кинетика тоже статика).
     ( cd "$CUR" \
         && make distclean >/dev/null 2>&1 || : \
         && ./configure --host="$TRIPLET" --prefix="$WORK/stage" \
@@ -122,8 +124,8 @@ if [ ! -f "stage/bin/curl" ]; then
             --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap \
             --disable-smtp --disable-smb --disable-gopher --disable-mqtt \
             --disable-manual --disable-verbose >/dev/null \
-            LDFLAGS="-static" ${CURLLIBS:+LIBS="$CURLLIBS"} \
-        && make -j"$NPROC" >/dev/null \
+            ${CURLLIBS:+LIBS="$CURLLIBS"} \
+        && make -j"$NPROC" AM_LDFLAGS="-all-static" >/dev/null \
         && make install >/dev/null )
 fi
 
