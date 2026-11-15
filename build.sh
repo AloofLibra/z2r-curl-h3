@@ -44,19 +44,28 @@ cd "$WORK"
 TC=$WORK/$TRIPLET-cross/bin/$TRIPLET-
 if [ ! -x "${TC}gcc" ]; then
     echo "== toolchain $TRIPLET"
-    for _ in 1 2 3; do
-        wget -q -O "$TC_TGZ" "https://musl.cc/$TC_TGZ" && break
-        sleep 5
-    done
-    [ -s "$TC_TGZ" ] || { echo "build.sh: не скачался тулчейн $TC_TGZ (musl.cc недоступен?)" >&2; exit 1; }
+    dl "https://musl.cc/$TC_TGZ" "$TC_TGZ"
     tar xf "$TC_TGZ"
 fi
 export CC=${TC}gcc AR=${TC}ar STRIP=${TC}strip RANLIB=${TC}ranlib LD=${TC}ld
 export PKG_CONFIG_PATH=$WORK/stage/lib/pkgconfig
 
+# Скачивание с ретраями: частичный файл не пройдёт проверку размера.
+# (wget под set -e справа от || убивает скрипт без сообщения — потому .part
+# и явный rc-контракт dl: 0 = скачано, 1 = сообщение + exit 1 вызывающему.)
 dl() { # dl <url> <file>
-    [ -s "$2" ] || wget -q -O "$2" "$1"
-    [ -s "$2" ] || { echo "build.sh: не скачалось $1" >&2; exit 1; }
+    [ -s "$2" ] && return 0
+    n=0
+    while :; do
+        rm -f "$2.part"
+        if wget -q -O "$2.part" "$1" && [ -s "$2.part" ]; then
+            mv -f "$2.part" "$2"
+            return 0
+        fi
+        n=$((n + 1))
+        [ "$n" -lt 3 ] || { echo "build.sh: не скачалось $1" >&2; return 1; }
+        sleep 5
+    done
 }
 
 # --- OpenSSL 3.5 LTS: native QUIC API (>= 3.5) -------------------------------
