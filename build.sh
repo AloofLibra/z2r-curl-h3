@@ -30,11 +30,13 @@ case "$ARCH" in
     x86_64)  TRIPLET=x86_64-linux-musl;    TC_TGZ=x86_64-linux-musl-cross.tgz;    OTARGET=linux-x86_64;  OEXTRA=""; CURLLIBS="" ;;
     i686)    TRIPLET=i686-linux-musl;      TC_TGZ=i686-linux-musl-cross.tgz;      OTARGET=linux-x86;     OEXTRA=""; CURLLIBS="" ;;
     aarch64) TRIPLET=aarch64-linux-musl;   TC_TGZ=aarch64-linux-musl-cross.tgz;   OTARGET=linux-aarch64; OEXTRA=""; CURLLIBS="" ;;
-    arm)     TRIPLET=arm-linux-musleabihf; TC_TGZ=arm-linux-musleabihf-cross.tgz; OTARGET=linux-armv4;   OEXTRA=""; CURLLIBS="" ;;
-    # MIPS soft-float: 64-битные атомики OpenSSL 3.5 требуют libatomic на линковке curl.
+    # 32-битные arch без нативных 64-битных атомиков: линковка curl требует
+    # libatomic (иначе curl configure не детектит OpenSSL — undefined
+    # __atomic_*_8 в libcrypto).
+    arm)     TRIPLET=arm-linux-musleabihf; TC_TGZ=arm-linux-musleabihf-cross.tgz; OTARGET=linux-armv4;   OEXTRA=""; CURLLIBS="-latomic" ;;
     mipsel)  TRIPLET=mipsel-linux-musl;    TC_TGZ=mipsel-linux-musl-cross.tgz;    OTARGET=linux-mips32;  OEXTRA="-DL_ENDIAN"; CURLLIBS="-latomic" ;;
     mipssf)  TRIPLET=mips-linux-musl;      TC_TGZ=mips-linux-musl-cross.tgz;      OTARGET=linux-mips32;  OEXTRA="-DB_ENDIAN"; CURLLIBS="-latomic" ;;
-    riscv64) TRIPLET=riscv64-linux-musl;   TC_TGZ=riscv64-linux-musl-cross.tgz;   OTARGET=linux-riscv64; OEXTRA=""; CURLLIBS="" ;;
+    riscv64) TRIPLET=riscv64-linux-musl;   TC_TGZ=riscv64-linux-musl-cross.tgz;   OTARGET=linux64-riscv64; OEXTRA=""; CURLLIBS="" ;;
     *) echo "build.sh: неизвестная архитектура: $ARCH" >&2; exit 1 ;;
 esac
 
