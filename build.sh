@@ -41,18 +41,10 @@ esac
 mkdir -p "$WORK" "$OUT"
 cd "$WORK"
 
-TC=$WORK/$TRIPLET-cross/bin/$TRIPLET-
-if [ ! -x "${TC}gcc" ]; then
-    echo "== toolchain $TRIPLET"
-    dl "https://musl.cc/$TC_TGZ" "$TC_TGZ"
-    tar xf "$TC_TGZ"
-fi
-export CC=${TC}gcc AR=${TC}ar STRIP=${TC}strip RANLIB=${TC}ranlib LD=${TC}ld
-export PKG_CONFIG_PATH=$WORK/stage/lib/pkgconfig
-
 # Скачивание с ретраями: частичный файл не пройдёт проверку размера.
 # (wget под set -e справа от || убивает скрипт без сообщения — потому .part
 # и явный rc-контракт dl: 0 = скачано, 1 = сообщение + exit 1 вызывающему.)
+# ОПРЕДЕЛЕНИЕ ДО ПЕРВОГО ВЫЗОВА (тулчейн ниже) — иначе 127 в CI.
 dl() { # dl <url> <file>
     [ -s "$2" ] && return 0
     n=0
@@ -67,6 +59,15 @@ dl() { # dl <url> <file>
         sleep 5
     done
 }
+
+TC=$WORK/$TRIPLET-cross/bin/$TRIPLET-
+if [ ! -x "${TC}gcc" ]; then
+    echo "== toolchain $TRIPLET"
+    dl "https://musl.cc/$TC_TGZ" "$TC_TGZ"
+    tar xf "$TC_TGZ"
+fi
+export CC=${TC}gcc AR=${TC}ar STRIP=${TC}strip RANLIB=${TC}ranlib LD=${TC}ld
+export PKG_CONFIG_PATH=$WORK/stage/lib/pkgconfig
 
 # --- OpenSSL 3.5 LTS: native QUIC API (>= 3.5) -------------------------------
 OSSL=openssl-$V_OPENSSL
