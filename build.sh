@@ -63,7 +63,10 @@ dl() { # dl <url> <file>
 TC=$WORK/$TRIPLET-cross/bin/$TRIPLET-
 if [ ! -x "${TC}gcc" ]; then
     echo "== toolchain $TRIPLET"
-    dl "https://musl.cc/$TC_TGZ" "$TC_TGZ"
+    # Основной источник — самохостинг (musl.cc отказывает GitHub-раннерам),
+    # musl.cc — фолбэк для локальных сборок.
+    TC_BASE=${Z2R_CURL_TC_BASE:-https://github.com/MarkinAlexander/z2r-curl-h3/releases/download/toolchains-v1}
+    dl "$TC_BASE/$TC_TGZ" "$TC_TGZ" || dl "https://musl.cc/$TC_TGZ" "$TC_TGZ"
     tar xf "$TC_TGZ"
 fi
 export CC=${TC}gcc AR=${TC}ar STRIP=${TC}strip RANLIB=${TC}ranlib LD=${TC}ld

@@ -69,7 +69,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin main --depth=1
           git checkout -B "debug-${{ matrix.arch }}" origin/main
-          git add "debug-${{ matrix.arch }}.log"
+          git add -f "debug-${{ matrix.arch }}.log"   # *.log в .gitignore
           git commit -m "debug log: ${{ matrix.arch }}"
           git push origin "debug-${{ matrix.arch }}"
 
