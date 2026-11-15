@@ -19,6 +19,8 @@ jobs:
   build:
     name: build ${{ matrix.arch }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -47,8 +49,21 @@ jobs:
 
       - name: Build
         run: |
-          sh build.sh ${{ matrix.arch }}
+          set -o pipefail
+          sh build.sh ${{ matrix.arch }} 2>&1 | tee build.log
           ls -la dist/
+
+      - name: Push debug log (только при падении — читаемый канал диагностики)
+        if: failure()
+        run: |
+          tail -60 build.log > "debug-${{ matrix.arch }}.log" || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main --depth=1
+          git checkout -B debug origin/main
+          git add "debug-${{ matrix.arch }}.log" || true
+          git commit -m "debug log: ${{ matrix.arch }}" || true
+          git push origin debug || true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
