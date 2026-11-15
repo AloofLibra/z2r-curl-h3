@@ -81,9 +81,9 @@ if [ ! -f "stage/lib/libssl.a" ]; then
         && make install_sw >/dev/null )
 fi
 
-# --- nghttp3 (тег без v-префикса) --------------------------------------------
+# --- nghttp3: тег С v-префиксом (v1.12.0), ассет без него (nghttp3-1.12.0) ---
 NG3=nghttp3-$V_NGHTTP3
-dl "https://github.com/ngtcp2/nghttp3/releases/download/$NG3/$NG3.tar.xz" "$NG3.tar.xz"
+dl "https://github.com/ngtcp2/nghttp3/releases/download/v$V_NGHTTP3/$NG3.tar.xz" "$NG3.tar.xz"
 [ -d "$NG3" ] || tar xf "$NG3.tar.xz"
 if [ ! -f "stage/lib/libnghttp3.a" ]; then
     echo "== nghttp3 $V_NGHTTP3"
