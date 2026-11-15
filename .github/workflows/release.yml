@@ -57,13 +57,19 @@ jobs:
         if: failure()
         run: |
           tail -60 build.log > "debug-${{ matrix.arch }}.log" || true
+          {
+            echo "### build ${{ matrix.arch }} — последние строки лога"
+            echo '```'
+            tail -30 build.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin main --depth=1
-          git checkout -B debug origin/main
-          git add "debug-${{ matrix.arch }}.log" || true
-          git commit -m "debug log: ${{ matrix.arch }}" || true
-          git push origin debug || true
+          git checkout -B "debug-${{ matrix.arch }}" origin/main
+          git add "debug-${{ matrix.arch }}.log"
+          git commit -m "debug log: ${{ matrix.arch }}"
+          git push origin "debug-${{ matrix.arch }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
