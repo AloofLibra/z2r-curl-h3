@@ -121,7 +121,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          sha=$(git rev-parse 'HEAD^{commit}')
+          # Релизная джоба без checkout: sha берём из контекста, не из git.
+          sha="${{ github.sha }}"
           gh api -X DELETE "repos/$GH_REPO/git/refs/tags/latest" >/dev/null 2>&1 || true
           gh api -X POST "repos/$GH_REPO/git/refs" -f ref=refs/tags/latest -f sha="$sha" >/dev/null
           gh release delete latest --yes --cleanup 2>/dev/null || true
