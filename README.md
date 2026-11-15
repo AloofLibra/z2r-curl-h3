@@ -30,10 +30,16 @@ googlevideo по настоящему HTTP/3 с самого роутера.
 | `x86_64` | x86_64-linux-musl | — | |
 | `i686` | i686-linux-musl | — | live: OpenWRT i686, h3 OK |
 | `aarch64` | aarch64-linux-musl | — | |
-| `arm` | arm-linux-musleabihf | armv6+/hf | live-проверка на железе — по мере доступа |
-| `mipsel` | mipsel-linux-musl | soft-float, LE | Keenetic MT7621 и др.; линковка curl требует `LIBS=-latomic` |
-| `mipssf` | mips-linux-musl | soft-float, BE | big-endian MIPS |
-| `riscv64` | riscv64-linux-musl | — | |
+| `arm` | arm-linux-musleabihf | armv6+/hf | `LIBS=-latomic` |
+| `mipsel` | mipsel-linux-musl | soft-float, LE | Keenetic MT7621; `LIBS=-latomic`; live: MT7621, h3 OK |
+| `mipssf` | mips-linux-musl | soft-float, BE | big-endian MIPS; `LIBS=-latomic` |
+| `riscv64` | riscv64-linux-musl | — | OpenSSL-таргет `linux64-riscv64` |
+
+Бинарники **полностью статические** (`make AM_LDFLAGS=-all-static`): работают
+и на musl-системах (OpenWRT), и на Entware/uClibc (Keenetic) — интерпретатора
+ld-musl не требуется. 32-битным arch без нативных 64-битных атомиков (arm,
+mips) нужна `-latomic` на линковке, иначе curl configure не детектит OpenSSL
+(`__atomic_*_8` в libcrypto).
 
 MIPS — soft-float: статический бинарник без FPU-аби-привязки работает на
 hard-float ядрах (MT7621 и пр.).
@@ -65,10 +71,11 @@ gunzip -c /tmp/curl-h3.gz > /opt/zator/tools/bin/curl-h3-$arch && chmod 755 /opt
 sh build.sh <arch>    # x86_64 i686 aarch64 arm mipsel mipssf riscv64
 ```
 
-Зависимости: wget, make, gcc (не нужен — кросс), `upx` (опционально, иначе без
-упаковки). Результат — `dist/z2r-curl-h3-linux-<arch>.gz`. CI собирает все
-платформы по тегу (`v*` или workflow_dispatch с тегом) и обновляет rolling-релиз
-`latest` + `sha256sums.txt`.
+Зависимости: wget, make, pkg-config, `upx` (опционально, иначе без упаковки).
+Результат — `dist/z2r-curl-h3-linux-<arch>.gz`. CI собирает все платформы по
+тегу (`v*` или workflow_dispatch с тегом) и обновляет rolling-релиз `latest` +
+`sha256sums.txt`. Кросс-тулчейны musl.cc самохостятся релизом `toolchains-v1`
+этого репозитория (musl.cc отказывает GitHub-раннерам), musl.cc — фолбэк.
 
 Кэш сборки живёт в `.build/<arch>/` (перезапуск продолжает с места обрыва);
 на чистую пересборку — `rm -rf .build`.
