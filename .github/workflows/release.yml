@@ -41,8 +41,10 @@ jobs:
         with:
           ref: ${{ inputs.tag || github.ref }}
 
-      - name: Install upx 5.2.1
+      - name: Install upx 5.2.1 + build deps
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq pkg-config wget
           curl -sL https://github.com/upx/upx/releases/download/v5.2.1/upx-5.2.1-amd64_linux.tar.xz | tar -xJ
           sudo cp upx-5.2.1-amd64_linux/upx /usr/local/bin/upx
           rm -rf upx-5.2.1-amd64_linux
