@@ -17,7 +17,7 @@ set -eu
 
 ARCH=${1:?usage: build.sh <arch> (x86_64 i686 aarch64 arm mipsel mipssf riscv64)}
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)   # build.sh живёт в корне репо
-WORK=${Z2R_CURL_BUILD_DIR:-$ROOT/.build}
+WORK=${Z2R_CURL_BUILD_DIR:-$ROOT/.build}/$ARCH   # per-arch: CI гонит 7 джоб параллельно
 OUT=$ROOT/dist
 NPROC=$(nproc 2>/dev/null || echo 2)
 
