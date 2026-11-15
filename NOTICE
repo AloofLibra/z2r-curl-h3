@@ -1,0 +1,27 @@
+z2r-curl-h3 — статические сборки curl с HTTP/3 для QUIC-медиапроверки затора.
+
+Этот репозиторий распространяет бинарники, собранные ИЗ ИСХОДНИКОВ следующих
+проектов (без модификаций протокольного кода; рецепт сборки — build.sh):
+
+1. curl 8.16.0 — https://github.com/curl/curl (тег curl-8_16_0)
+   Лицензия: MIT License — https://curl.se/docs/copyright.html
+   Copyright (c) Daniel Stenberg and curl contributors.
+
+2. OpenSSL 3.5.4 — https://github.com/openssl/openssl
+   Лицензия: Apache License 2.0 — https://www.openssl.org/source/license.html
+   Copyright (c) The OpenSSL Project Authors.
+
+3. nghttp3 1.12.0 — https://github.com/ngtcp2/nghttp3
+   Лицензия: MIT License — https://nghttp2.org/nghttp3/
+   Copyright (c) nghttp3 contributors.
+
+Бинарники статически слинкованы с musl libc (https://musl.libc.org, MIT,
+Copyright (c) Rich Felker and musl contributors); кросс-тулчейны musl.cc
+(gcc — GPLv3+ runtime exception) в бинарник не попадают.
+
+Упаковка: UPX (https://upx.github.io, GPLv2+) — упакованные бинарники
+декомпрессируются в память при запуске; исходный вид восстанавливается
+`upx -d`.
+
+Соответствующие тексты лицензий доступны по указанным ссылкам и в исходных
+архивах (каталоги docs/COPYING соответствующих проектов).

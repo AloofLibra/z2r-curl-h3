@@ -1,0 +1,107 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'тег для сборки и релиза (пусто = текущая ветка, только артефакты без релиза)'
+        required: false
+        default: ''
+  push:
+    tags:
+      - 'v[0-9]+*'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build ${{ matrix.arch }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # Имена arch = контракт затора (lib/quic_media.sh: asset
+        # z2r-curl-h3-linux-<arch>.gz). Все платформы мавг, что имеют смысл
+        # для curl; riscv64 тоже собираем.
+        include:
+          - { arch: x86_64 }
+          - { arch: i686 }
+          - { arch: aarch64 }
+          - { arch: arm }
+          - { arch: mipsel }
+          - { arch: mipssf }
+          - { arch: riscv64 }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Install upx 5.2.1
+        run: |
+          curl -sL https://github.com/upx/upx/releases/download/v5.2.1/upx-5.2.1-amd64_linux.tar.xz | tar -xJ
+          sudo cp upx-5.2.1-amd64_linux/upx /usr/local/bin/upx
+          rm -rf upx-5.2.1-amd64_linux
+
+      - name: Build
+        run: |
+          sh build.sh ${{ matrix.arch }}
+          ls -la dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: z2r-curl-h3-linux-${{ matrix.arch }}
+          path: dist/z2r-curl-h3-linux-${{ matrix.arch }}.gz
+          if-no-files-found: error
+
+  release:
+    # Релиз только по тегу или workflow_dispatch с указанным тегом;
+    # без тега — просто артефакты для ручной проверки.
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: z2r-curl-h3-linux-*
+          merge-multiple: true
+
+      - name: Checksums
+        run: |
+          cd dist
+          sha256sum z2r-curl-h3-linux-*.gz > sha256sums.txt
+          ls -la
+
+      - name: Release (версионный тег)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
+          fail_on_unmatched_files: true
+          body: |
+            Статический curl с HTTP/3 (OpenSSL native QUIC + nghttp3, musl) для QUIC-медиапроверки затора.
+
+            Источники: curl 8.16.0, OpenSSL 3.5.4, nghttp3 1.12.0 (см. NOTICE и build.sh).
+            Упаковка: upx --best --lzma (где поддержан), затем gzip. Проверка: sha256sums.txt.
+          files: |
+            dist/z2r-curl-h3-linux-*.gz
+            dist/sha256sums.txt
+
+      - name: Rolling latest (тег и релиз)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          sha=$(git rev-parse 'HEAD^{commit}')
+          gh api -X DELETE "repos/$GH_REPO/git/refs/tags/latest" >/dev/null 2>&1 || true
+          gh api -X POST "repos/$GH_REPO/git/refs" -f ref=refs/tags/latest -f sha="$sha" >/dev/null
+          gh release delete latest --yes --cleanup 2>/dev/null || true
+          gh release create latest dist/z2r-curl-h3-linux-*.gz dist/sha256sums.txt \
+            --title "latest" \
+            --notes "Rolling-релиз: те же бинарники, что и в последнем версионном теге. Проверка: sha256sums.txt."
