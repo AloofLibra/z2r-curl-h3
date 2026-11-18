@@ -32,7 +32,7 @@ googlevideo по настоящему HTTP/3 с самого роутера.
 | `aarch64` | aarch64-linux-musl | — | |
 | `arm` | arm-linux-musleabihf | armv6+/hf | `LIBS=-latomic` |
 | `mipsel` | mipsel-linux-musl | soft-float, LE | Keenetic MT7621; `LIBS=-latomic`; live: MT7621, h3 OK |
-| `mipssf` | mips-linux-musl | soft-float, BE | big-endian MIPS; `LIBS=-latomic` |
+| `mipssf` | mips-linux-muslsf | soft-float, BE | big-endian MIPS; `LIBS=-latomic` |
 | `riscv64` | riscv64-linux-musl | — | OpenSSL-таргет `linux64-riscv64` |
 
 Бинарники **полностью статические** (`make AM_LDFLAGS=-all-static`): работают
