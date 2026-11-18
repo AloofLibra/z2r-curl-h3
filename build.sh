@@ -34,7 +34,7 @@ case "$ARCH" in
     # libatomic (иначе curl configure не детектит OpenSSL — undefined
     # __atomic_*_8 в libcrypto).
     arm)     TRIPLET=arm-linux-musleabihf; TC_TGZ=arm-linux-musleabihf-cross.tgz; OTARGET=linux-armv4;   OEXTRA=""; CURLLIBS="-latomic" ;;
-    mipsel)  TRIPLET=mipsel-linux-musl;    TC_TGZ=mipsel-linux-musl-cross.tgz;    OTARGET=linux-mips32;  OEXTRA="-DL_ENDIAN"; CURLLIBS="-latomic" ;;
+    mipsel)  TRIPLET=mipsel-linux-muslsf;  TC_TGZ=mipsel-linux-muslsf-cross.tgz;  OTARGET=linux-mips32;  OEXTRA="-DL_ENDIAN"; CURLLIBS="-latomic" ;;
     mipssf)  TRIPLET=mips-linux-muslsf;    TC_TGZ=mips-linux-muslsf-cross.tgz;    OTARGET=linux-mips32;  OEXTRA="-DB_ENDIAN"; CURLLIBS="-latomic" ;;
     riscv64) TRIPLET=riscv64-linux-musl;   TC_TGZ=riscv64-linux-musl-cross.tgz;   OTARGET=linux64-riscv64; OEXTRA=""; CURLLIBS="" ;;
     *) echo "build.sh: неизвестная архитектура: $ARCH" >&2; exit 1 ;;
@@ -68,7 +68,7 @@ if [ ! -x "${TC}gcc" ]; then
     # Основной источник — самохостинг (musl.cc отказывает GitHub-раннерам),
     # musl.cc — фолбэк для локальных сборок.
     TC_BASE=${Z2R_CURL_TC_BASE:-https://github.com/MarkinAlexander/z2r-curl-h3/releases/download/toolchains-v1}
-    if [ "$ARCH" = mipssf ]; then
+    if [ "$ARCH" = mipsel ] || [ "$ARCH" = mipssf ]; then
         dl "$TC_BASE/$TC_TGZ" "$TC_TGZ" \
             || dl "https://github.com/musl-cc/musl.cc/releases/download/v0.0.1/$TC_TGZ" "$TC_TGZ" \
             || dl "https://musl.cc/$TC_TGZ" "$TC_TGZ"

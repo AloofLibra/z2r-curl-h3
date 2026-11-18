@@ -31,7 +31,7 @@ googlevideo по настоящему HTTP/3 с самого роутера.
 | `i686` | i686-linux-musl | — | live: OpenWRT i686, h3 OK |
 | `aarch64` | aarch64-linux-musl | — | |
 | `arm` | arm-linux-musleabihf | armv6+/hf | `LIBS=-latomic` |
-| `mipsel` | mipsel-linux-musl | soft-float, LE | Keenetic MT7621; `LIBS=-latomic`; live: MT7621, h3 OK |
+| `mipsel` | mipsel-linux-muslsf | soft-float, LE | Keenetic MT7621; `LIBS=-latomic`; live: MT7621, h3 OK |
 | `mipssf` | mips-linux-muslsf | soft-float, BE | big-endian MIPS; `LIBS=-latomic` |
 | `riscv64` | riscv64-linux-musl | — | OpenSSL-таргет `linux64-riscv64` |
 
